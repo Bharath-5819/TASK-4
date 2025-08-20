@@ -1,0 +1,154 @@
+#include <opencv2/opencv.hpp>
+#include <iostream>
+using namespace cv;
+using namespace std;
+
+Mat image, processedImage;
+
+// Function to load an image
+void loadImage() {
+    string path;
+    cout << "Enter image path: ";
+    cin >> path;
+    image = imread(path);
+
+    if (image.empty()) {
+        cout << "⚠ Error: Could not load image.\n";
+    } else {
+        processedImage = image.clone();
+        cout << "✅ Image loaded successfully.\n";
+        imshow("Image", processedImage);
+        waitKey(0);
+        destroyAllWindows();
+    }
+}
+
+// Apply grayscale filter
+void applyGrayscale() {
+    cvtColor(processedImage, processedImage, COLOR_BGR2GRAY);
+    cvtColor(processedImage, processedImage, COLOR_GRAY2BGR); // keep 3 channels
+    imshow("Grayscale Image", processedImage);
+    waitKey(0);
+    destroyAllWindows();
+}
+
+// Apply blur filter
+void applyBlur() {
+    GaussianBlur(processedImage, processedImage, Size(7, 7), 1.5);
+    imshow("Blurred Image", processedImage);
+    waitKey(0);
+    destroyAllWindows();
+}
+
+// Apply sharpen filter
+void applySharpen() {
+    Mat kernel = (Mat_<float>(3,3) <<
+                  0, -1, 0,
+                 -1, 5, -1,
+                  0, -1, 0);
+    filter2D(processedImage, processedImage, processedImage.depth(), kernel);
+    imshow("Sharpened Image", processedImage);
+    waitKey(0);
+    destroyAllWindows();
+}
+
+// Adjust brightness and contrast
+void adjustBrightnessContrast() {
+    double alpha; // contrast
+    int beta;     // brightness
+    cout << "Enter contrast value (1.0 - 3.0): ";
+    cin >> alpha;
+    cout << "Enter brightness value (0 - 100): ";
+    cin >> beta;
+
+    processedImage.convertTo(processedImage, -1, alpha, beta);
+    imshow("Brightness/Contrast Adjusted", processedImage);
+    waitKey(0);
+    destroyAllWindows();
+}
+
+// Resize image
+void resizeImage() {
+    int width, height;
+    cout << "Enter new width: ";
+    cin >> width;
+    cout << "Enter new height: ";
+    cin >> height;
+    resize(processedImage, processedImage, Size(width, height));
+    imshow("Resized Image", processedImage);
+    waitKey(0);
+    destroyAllWindows();
+}
+
+// Crop image
+void cropImage() {
+    int x, y, w, h;
+    cout << "Enter x, y, width, height for crop: ";
+    cin >> x >> y >> w >> h;
+
+    if (x >= 0 && y >= 0 && x+w <= processedImage.cols && y+h <= processedImage.rows) {
+        Rect roi(x, y, w, h);
+        processedImage = processedImage(roi);
+        imshow("Cropped Image", processedImage);
+        waitKey(0);
+        destroyAllWindows();
+    } else {
+        cout << "⚠ Invalid crop dimensions.\n";
+    }
+}
+
+// Save image
+void saveImage() {
+    string savePath;
+    cout << "Enter path to save image (e.g., output.jpg): ";
+    cin >> savePath;
+    imwrite(savePath, processedImage);
+    cout << "💾 Image saved successfully at " << savePath << endl;
+}
+
+// Menu
+void showMenu() {
+    cout << "\n===== Image Processing Tool (OpenCV) =====\n";
+    cout << "1. Load Image\n";
+    cout << "2. Display Image\n";
+    cout << "3. Grayscale Filter\n";
+    cout << "4. Blur Filter\n";
+    cout << "5. Sharpen Filter\n";
+    cout << "6. Adjust Brightness/Contrast\n";
+    cout << "7. Resize Image\n";
+    cout << "8. Crop Image\n";
+    cout << "9. Save Image\n";
+    cout << "10. Exit\n";
+    cout << "Choose an option: ";
+}
+
+int main() {
+    int choice;
+    do {
+        showMenu();
+        cin >> choice;
+
+        switch (choice) {
+            case 1: loadImage(); break;
+            case 2:
+                if (!processedImage.empty()) {
+                    imshow("Current Image", processedImage);
+                    waitKey(0);
+                    destroyAllWindows();
+                } else cout << "⚠ No image loaded.\n";
+                break;
+            case 3: if (!processedImage.empty()) applyGrayscale(); else cout << "⚠ Load image first.\n"; break;
+            case 4: if (!processedImage.empty()) applyBlur(); else cout << "⚠ Load image first.\n"; break;
+            case 5: if (!processedImage.empty()) applySharpen(); else cout << "⚠ Load image first.\n"; break;
+            case 6: if (!processedImage.empty()) adjustBrightnessContrast(); else cout << "⚠ Load image first.\n"; break;
+            case 7: if (!processedImage.empty()) resizeImage(); else cout << "⚠ Load image first.\n"; break;
+            case 8: if (!processedImage.empty()) cropImage(); else cout << "⚠ Load image first.\n"; break;
+            case 9: if (!processedImage.empty()) saveImage(); else cout << "⚠ Load image first.\n"; break;
+            case 10: cout << "👋 Exiting program.\n"; break;
+            default: cout << "⚠ Invalid choice.\n"; break;
+        }
+
+    } while (choice != 10);
+
+    return 0;
+}
